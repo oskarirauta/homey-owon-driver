@@ -1,0 +1,135 @@
+{
+  "_comment": "This file is generated. Please edit .homeycompose/app.json instead.",
+  "id": "com.oskarirauta.owon",
+  "source": "https://github.com/oskarirauta/homey-owon-driver",
+  "bugs": {
+    "url": "https://github.com/oskarirauta/homey-owon-driver/issues"
+  },
+  "version": "1.0.0",
+  "compatibility": ">=5.0.0",
+  "sdk": 3,
+  "platforms": [
+    "local"
+  ],
+  "name": {
+    "en": "OWON"
+  },
+  "description": {
+    "en": "OWON THS317-ET ZigBee temperature sensor driver"
+  },
+  "category": [
+    "climate"
+  ],
+  "permissions": [],
+  "images": {
+    "small": "/assets/images/small.png",
+    "large": "/assets/images/large.png",
+    "xlarge": "/assets/images/xlarge.png"
+  },
+  "energy": {
+    "batteries": [
+      "AAA",
+      "AAA"
+    ]
+  },
+  "author": {
+    "name": "Oskari Rauta"
+  },
+  "contributors": {
+    "developers": [
+      {
+        "name": "Oskari Rauta"
+      }
+    ]
+  },
+  "contributing": {
+    "donate": {
+      "paypal": {
+        "username": "oskarirauta"
+      }
+    }
+  },
+  "brandColor": "#5C9DF3",
+  "tags": {
+    "en": [
+      "OWON",
+      "THS317-ET",
+      "zigbee",
+      "temperature"
+    ]
+  },
+  "drivers": [
+    {
+      "name": {
+        "en": "THS317-ET"
+      },
+      "class": "sensor",
+      "capabilities": [
+        "measure_battery",
+        "measure_temperature",
+        "measure_voltage"
+      ],
+      "platforms": [
+        "local"
+      ],
+      "connectivity": [
+        "zigbee"
+      ],
+      "images": {
+        "small": "/drivers/THS317-ET/assets/images/small.png",
+        "large": "/drivers/THS317-ET/assets/images/large.png",
+        "xlarge": "/drivers/THS317-ET/assets/images/xlarge.png"
+      },
+      "zigbee": {
+        "manufacturerName": "OWON",
+        "productId": [
+          "THS317-ET"
+        ],
+        "endpoints": {
+          "1": {
+            "clusters": [
+              0,
+              1,
+              1026
+            ],
+            "bindings": [
+              1,
+              1026
+            ]
+          }
+        },
+        "learnmode": {
+          "image": "/drivers/my_driver/assets/learnmode.svg",
+          "instruction": {
+            "en": "press button for 10 seconds to reset, then press button to pair, if device is not found in 30 seconds, press button again"
+          }
+        }
+      },
+      "energy": {
+        "batteries": [
+          "AAA",
+          "AAA"
+        ]
+      },
+      "settings": [
+        {
+          "id": "temperature_offset",
+          "type": "number",
+          "label": {
+            "en": "Temperature Offset"
+          },
+          "value": 0,
+          "min": -5,
+          "max": 5,
+          "hint": {
+            "en": "Offset to apply to temperature readings."
+          },
+          "units": {
+            "en": "°C"
+          }
+        }
+      ],
+      "id": "THS317-ET"
+    }
+  ]
+}

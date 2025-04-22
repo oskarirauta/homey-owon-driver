@@ -1,0 +1,60 @@
+{
+  "id": "com.oskarirauta.owon",
+  "source": "https://github.com/oskarirauta/homey-owon-driver",
+  "bugs": {
+    "url": "https://github.com/oskarirauta/homey-owon-driver/issues"
+  },
+  "version": "1.0.0",
+  "compatibility": ">=5.0.0",
+  "sdk": 3,
+  "platforms": [
+    "local"
+  ],
+  "name": {
+    "en": "OWON"
+  },
+  "description": {
+    "en": "OWON THS317-ET ZigBee temperature sensor driver"
+  },
+  "category": [
+    "climate"
+  ],
+  "permissions": [],
+  "images": {
+    "small": "/assets/images/small.png",
+    "large": "/assets/images/large.png",
+    "xlarge": "/assets/images/xlarge.png"
+  },
+  "energy": {
+    "batteries": [
+      "AAA",
+      "AAA"
+    ]
+  },
+  "author": {
+    "name": "Oskari Rauta"
+  },
+  "contributors": {
+    "developers": [
+      {
+        "name": "Oskari Rauta"
+      }
+    ]
+  },
+  "contributing": {
+    "donate": {
+      "paypal": {
+        "username": "oskarirauta"
+      }
+    }
+  },
+  "brandColor": "#5C9DF3",
+  "tags": {
+    "en": [
+      "OWON",
+      "THS317-ET",
+      "zigbee",
+      "temperature"
+    ]
+  }
+}
