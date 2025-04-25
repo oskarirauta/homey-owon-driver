@@ -3,21 +3,24 @@
     "en": "THS317-ET"
   },
   "class": "sensor",
+  "platforms": ["local"],
+  "connectivity": ["zigbee"],
+  "images": {
+    "small": "{{driverAssetsPath}}/images/small.png",
+    "large": "{{driverAssetsPath}}/images/large.png",
+    "xlarge": "{{driverAssetsPath}}/images/xlarge.png"
+  },
   "capabilities": [
+    "alarm_battery",
     "measure_battery",
     "measure_temperature",
     "measure_voltage"
   ],
-  "platforms": [
-    "local"
-  ],
-  "connectivity": [
-    "zigbee"
-  ],
-  "images": {
-    "small": "/drivers/THS317-ET/assets/images/small.png",
-    "large": "/drivers/THS317-ET/assets/images/large.png",
-    "xlarge": "/drivers/THS317-ET/assets/images/xlarge.png"
+  "energy": {
+    "batteries": [
+      "AAA",
+      "AAA"
+    ]
   },
   "zigbee": {
     "manufacturerName": "OWON",
@@ -38,34 +41,10 @@
       }
     },
     "learnmode": {
-      "image": "/drivers/my_driver/assets/learnmode.svg",
+      "image": "{{driverAssetsPath}}/learnmode.svg",
       "instruction": {
-        "en": "press button for 10 seconds to reset, then press button to pair, if device is not found in 30 seconds, press button again"
+        "en": "hold button for 10 seconds to reset, wait 10 seconds and press button"
       }
     }
-  },
-  "energy": {
-    "batteries": [
-      "AAA",
-      "AAA"
-    ]
-  },
-  "settings": [
-    {
-      "id": "temperature_offset",
-      "type": "number",
-      "label": {
-        "en": "Temperature Offset"
-      },
-      "value": 0,
-      "min": -5,
-      "max": 5,
-      "hint": {
-        "en": "Offset to apply to temperature readings."
-      },
-      "units": {
-        "en": "°C"
-      }
-    }
-  ]
+  }
 }
