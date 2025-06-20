@@ -90,7 +90,7 @@ class THS317ET extends ZigBeeDevice {
   
   async onSettings(settingsEvent) {
     if (settingsEvent.changedKeys.includes("temperature_offset")) {
-      const temperatureOffset = newSettings.temperature_offset;
+      const temperatureOffset = settingsEvent.newSettings.temperature_offset;
       this.log('Device ${this.getName()} temperature offset: ${temperatureOffset}°C');
     }
   }
