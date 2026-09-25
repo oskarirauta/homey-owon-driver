@@ -26,6 +26,8 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm test
+      - name: Install musl sharp binary for Alpine Docker action
+        run: npm install --no-save --include=optional --os=linux --libc=musl --cpu=x64 sharp@0.33.5
       - name: Validate at ${{ matrix.level }} level
         uses: athombv/github-action-homey-app-validate@master
         with:

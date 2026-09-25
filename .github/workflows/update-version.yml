@@ -34,11 +34,14 @@ jobs:
           cache: npm
       - run: npm ci
       - name: Update Homey App Version
-        uses: athombv/github-action-homey-app-version@master
         id: update_app_version
-        with:
-          version: ${{ inputs.version }}
-          changelog: ${{ inputs.changelog }}
+        env:
+          VERSION_BUMP: ${{ inputs.version }}
+          CHANGELOG: ${{ inputs.changelog }}
+        run: |
+          npx homey app version "$VERSION_BUMP" --changelog "$CHANGELOG"
+          VERSION=$(node -p "require('./app.json').version")
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
       - name: Synchronize package metadata and generated manifest
         run: |
           npm version "${{ steps.update_app_version.outputs.version }}" --no-git-tag-version
