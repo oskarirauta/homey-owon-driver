@@ -1,113 +1,125 @@
 'use strict';
 
-const Homey = require('homey');
 const { ZigBeeDevice } = require('homey-zigbeedriver');
-const { debug, CLUSTER } = require('zigbee-clusters');
+const { CLUSTER } = require('zigbee-clusters');
 
-class THS317ET extends ZigBeeDevice {
+const TEMPERATURE_SCALE = 100;
+const BATTERY_VOLTAGE_SCALE = 10;
+const ZCL_INVALID_TEMPERATURE = -32768;
 
-  log(...args) {
-    const timestamp = new Date().toISOString();
-    const deviceId = this.getData().id || this.getData().token;
-    const deviceName = this.getName();
-    console.log(`${timestamp} [Device: ${deviceName}] -`, ...args);
-  }
-  
+class THS317ETDevice extends ZigBeeDevice {
+
   async onNodeInit({ zclNode }) {
+    this.temperatureMeasurementCluster = zclNode.endpoints[1].clusters[CLUSTER.TEMPERATURE_MEASUREMENT.NAME];
 
-    //this.enableDebug();
-    //debug(true);
-
-    this.disableDebug();
-    debug(false);
-
-    if (!this.hasCapability("measure_voltage")) {
-      await this.addCapability("measure_voltage");
-      this.log("Added 'measure_voltage' capability to device ", this.getName());
-    }
-
-    if (this.isFirstInit()) {
-
-      this.log("Set batteryPercentageRemaining");
-      await this.configureAttributeReporting([
-        {
-          endpointId: 1,
-          cluster: CLUSTER.POWER_CONFIGURATION,
-          attributeName: "batteryPercentageRemaining",
-          minInterval: 65535,
-          maxInterval: 0,
-          minChange: 0,
+    this.registerCapability('measure_temperature', CLUSTER.TEMPERATURE_MEASUREMENT, {
+      get: 'measuredValue',
+      report: 'measuredValue',
+      getOpts: {
+        getOnStart: true,
+        getOnOnline: true,
+      },
+      reportOpts: {
+        configureAttributeReporting: {
+          minInterval: 1,
+          maxInterval: 3600,
+          minChange: 10,
         },
-      ]);
+      },
+      reportParser: (value) => this.parseTemperature(value),
+    });
 
-      this.log("Set batteryVoltage precision");
-      await this.configureAttributeReporting([
-        {
-          endpointId: 1,
-          cluster: CLUSTER.POWER_CONFIGURATION,
-          attributeName: "batteryVoltage",
+    this.registerCapability('measure_battery', CLUSTER.POWER_CONFIGURATION, {
+      get: 'batteryPercentageRemaining',
+      report: 'batteryPercentageRemaining',
+      getOpts: {
+        getOnStart: true,
+        getOnOnline: true,
+      },
+      reportOpts: {
+        configureAttributeReporting: {
+          minInterval: 60,
+          maxInterval: 3600,
+          minChange: 2,
+        },
+      },
+      reportParser: (value) => Math.min(100, value / 2),
+    });
+
+    this.registerCapability('measure_voltage', CLUSTER.POWER_CONFIGURATION, {
+      get: 'batteryVoltage',
+      report: 'batteryVoltage',
+      getOpts: {
+        getOnStart: true,
+        getOnOnline: true,
+      },
+      reportOpts: {
+        configureAttributeReporting: {
           minInterval: 30,
           maxInterval: 3600,
-          minChange: 1
-        }
-      ]);
+          minChange: 1,
+        },
+      },
+      reportParser: (value) => value / BATTERY_VOLTAGE_SCALE,
+    });
 
+    this.registerCapability('alarm_battery', CLUSTER.POWER_CONFIGURATION, {
+      get: 'batteryPercentageRemaining',
+      report: 'batteryPercentageRemaining',
+      getOpts: {
+        getOnStart: true,
+        getOnOnline: true,
+      },
+      reportOpts: {
+        configureAttributeReporting: false,
+      },
+      reportParser: (value) => (value / 2) <= this.getBatteryThreshold(),
+    });
+  }
+
+  parseTemperature(value, settings = this.getSettings()) {
+    if (!Number.isFinite(value) || value === ZCL_INVALID_TEMPERATURE) {
+      return null;
     }
 
-    // measure_temperature
-    zclNode.endpoints[1].clusters[CLUSTER.TEMPERATURE_MEASUREMENT.NAME]
-    .on('attr.measuredValue', this.onTemperatureMeasuredAttributeReport.bind(this));
+    const temperature = value / TEMPERATURE_SCALE;
+    const offset = Number(settings.temperature_offset) || 0;
+    const decimals = Number.parseInt(settings.temperature_decimals, 10) === 2 ? 2 : 1;
 
-    // measure_voltage
-    zclNode.endpoints[1].clusters[CLUSTER.POWER_CONFIGURATION.NAME]
-    .on('attr.batteryVoltage', this.onBatteryVoltageAttributeReport.bind(this));
-
-    // measure_battery
-    zclNode.endpoints[1].clusters[CLUSTER.POWER_CONFIGURATION.NAME]
-    .on('attr.batteryPercentageRemaining', this.onBatteryPercentageRemainingAttributeReport.bind(this));
-
+    return Number((temperature + offset).toFixed(decimals));
   }
 
-  onTemperatureMeasuredAttributeReport(measuredValue) {
-    const temperatureOffset = this.getSetting('temperature_offset') || 0;
-    const parsedValue = this.getSetting('temperature_decimals') === '2' ? Math.round((measuredValue / 100) * 100) / 100 : Math.round((measuredValue / 100) * 10) / 10;
-    this.log('measure_temperature | temperatureMeasurement - measuredValue (temperature):', parsedValue, '+ temperature offset', temperatureOffset);
-    this.setCapabilityValue('measure_temperature', parsedValue + temperatureOffset).catch(this.error);
+  getBatteryThreshold(settings = this.getSettings()) {
+    const threshold = Number(settings.batteryThreshold);
+    return Number.isFinite(threshold) ? threshold : 20;
   }
 
-  onBatteryVoltageAttributeReport(batteryVoltage) {
-    const voltage = batteryVoltage * 0.1;
-    this.log("measure_voltage | powerConfiguration - batteryVoltage (v): ", batteryVoltage * 0.1);
-    this.setCapabilityValue('measure_voltage', batteryVoltage * 0.1).catch(this.error);
-  }
-
-  onBatteryPercentageRemainingAttributeReport(batteryPercentageRemaining) {
-    const batteryThreshold = this.getSetting('batteryThreshold') || 20;
-    this.log("measure_battery | powerConfiguration - batteryPercentageRemaining (%): ", batteryPercentageRemaining * 0.5);
-    this.setCapabilityValue('measure_battery', batteryPercentageRemaining * 0.5).catch(this.error);
-    this.setCapabilityValue('alarm_battery', (batteryPercentageRemaining * 0.5 < batteryThreshold) ? true : false).catch(this.error);
-  }
-  
-  async onSettings(settingsEvent) {
-    if (settingsEvent.changedKeys.includes("temperature_offset")) {
-      const temperatureOffset = settingsEvent.newSettings.temperature_offset;
-      this.log('Device ${this.getName()} temperature offset: ${temperatureOffset}°C');
-    }
-  }
- 
-  async onEndDeviceAnnounce() {
-    if (!this.getAvailable()) {
-      await this.setAvailable() // Mark the device as available upon re-announcement
-      .then(() => this.log('Device is now available'))
-      .catch(err => this.error('Error setting device available', err));
+  async onSettings({ newSettings, changedKeys }) {
+    if (changedKeys.includes('temperature_offset') || changedKeys.includes('temperature_decimals')) {
+      await this.refreshTemperature(newSettings);
     }
 
+    if (changedKeys.includes('batteryThreshold')) {
+      const batteryLevel = this.getCapabilityValue('measure_battery');
+      if (Number.isFinite(batteryLevel)) {
+        await this.setCapabilityValue('alarm_battery', batteryLevel <= this.getBatteryThreshold(newSettings));
+      }
+    }
   }
 
-  onDeleted(){
-    this.log("Temperature sensor THS317-ET removed")
+  async refreshTemperature(settings = this.getSettings()) {
+    try {
+      const { measuredValue } = await this.temperatureMeasurementCluster.readAttributes('measuredValue');
+      const temperature = this.parseTemperature(measuredValue, settings);
+
+      if (temperature !== null) {
+        await this.setCapabilityValue('measure_temperature', temperature);
+      }
+    } catch (error) {
+      this.error('Could not refresh the temperature after changing settings', error);
+    }
   }
 
 }
 
-module.exports = THS317ET;
+module.exports = THS317ETDevice;
