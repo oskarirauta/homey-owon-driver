@@ -1,4 +1,4 @@
-Adds support for OWON Zigbee devices
+Adds support for OWON Zigbee devices.
 
-This app supports following devices:
- - TSH317-ET temperature sensor (non tuya version)
+Supported devices:
+ - THS317-ET temperature sensor with an external probe (non-Tuya version)

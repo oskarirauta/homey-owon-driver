@@ -46,5 +46,6 @@
   "source": "https://github.com/oskarirauta/homey-owon-driver",
   "bugs": {
     "url": "https://github.com/oskarirauta/homey-owon-driver/issues"
-  }
+  },
+  "support": "https://github.com/oskarirauta/homey-owon-driver/issues"
 }
