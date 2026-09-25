@@ -1,0 +1,60 @@
+name: Update Homey App Version
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        type: choice
+        description: Version
+        required: true
+        default: patch
+        options:
+          - major
+          - minor
+          - patch
+      changelog:
+        type: string
+        description: Changelog
+        required: true
+
+permissions:
+  contents: write
+
+jobs:
+  update:
+    name: Update Homey App Version
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - name: Update Homey App Version
+        uses: athombv/github-action-homey-app-version@master
+        id: update_app_version
+        with:
+          version: ${{ inputs.version }}
+          changelog: ${{ inputs.changelog }}
+      - name: Synchronize package metadata and generated manifest
+        run: |
+          npm version "${{ steps.update_app_version.outputs.version }}" --no-git-tag-version
+          npx homey app build
+          npm test
+          npm run validate:verified
+      - name: Commit, tag, push, and create release
+        run: |
+          git config --local user.name "github-actions[bot]"
+          git config --local user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "Update Homey App Version to v${{ steps.update_app_version.outputs.version }}"
+          git tag "v${{ steps.update_app_version.outputs.version }}"
+          git push origin HEAD --tags
+          gh release create "v${{ steps.update_app_version.outputs.version }}" \
+            --title "v${{ steps.update_app_version.outputs.version }}" \
+            --notes "${{ inputs.changelog }}"
+        env:
+          GH_TOKEN: ${{ github.token }}

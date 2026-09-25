@@ -1,0 +1,32 @@
+name: Validate Homey App
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    name: Test and validate (${{ matrix.level }})
+    runs-on: ubuntu-24.04
+    strategy:
+      fail-fast: false
+      matrix:
+        level:
+          - publish
+          - verified
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - run: npm test
+      - name: Validate at ${{ matrix.level }} level
+        uses: athombv/github-action-homey-app-validate@master
+        with:
+          level: ${{ matrix.level }}
