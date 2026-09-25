@@ -1,2 +1,4 @@
 .DS_STORE
 .homeybuild
+node_modules
+npm-debug.log*

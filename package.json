@@ -1,0 +1,27 @@
+{
+  "name": "com.oskarirauta.owon",
+  "version": "1.0.1",
+  "private": true,
+  "description": "OWON Zigbee drivers for Homey",
+  "license": "MIT",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "lint": "eslint app.js drivers test",
+    "test": "npm run lint && mocha",
+    "validate": "homey app validate",
+    "validate:publish": "homey app validate --level publish",
+    "validate:verified": "homey app validate --level verified"
+  },
+  "dependencies": {
+    "homey-zigbeedriver": "^2.2.18",
+    "zigbee-clusters": "^3.8.0"
+  },
+  "devDependencies": {
+    "eslint": "^8.57.1",
+    "eslint-config-athom": "^4.0.2",
+    "homey": "^3.12.2",
+    "mocha": "^12.0.0"
+  }
+}
